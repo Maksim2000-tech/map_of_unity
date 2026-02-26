@@ -75,13 +75,19 @@
 <script src="region_json.js"></script>
 
 <script>
+    const southWest = L.latLng(40.0, 18.0);
+    const northEast = L.latLng(85.0, 190.0);
+    const bounds = L.latLngBounds(southWest, northEast);
     const map = L.map('map', { 
         center: [65, 95], 
         zoom: 3.5,
         zoomSnap: 0.1,
-        attributionControl: false
+        attributionControl: false,
+        maxBounds: bounds,
+        maxBoundsViscosity: 1.0
     });
-
+    map.setMinZoom(3.5);
+    map.setMaxZoom(35.5)
     L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png').addTo(map);
 
     const tooltip = document.getElementById('floating-tooltip');
@@ -126,4 +132,5 @@
     }
 </script>
 </body>
+
 </html>
