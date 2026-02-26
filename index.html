@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Интерактивная карта единства</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <style>
+        body { margin: 0; padding: 0; background: #f0f4f8; overflow: hidden; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        
+        #map { height: 100vh; width: 100vw; z-index: 1; }
+
+        .project-header {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            padding: 12px 30px;
+            border-radius: 50px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            text-align: center;
+            white-space: nowrap;
+            pointer-events: none;
+        }
+        .project-header span {
+            color: #7f8c8d;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            display: block;
+            margin-bottom: 2px;
+        }
+        .project-header h1 {
+            margin: 0;
+            font-size: 20px;
+            color: #2c3e50;
+            font-weight: 800;
+        }
+
+        .project-header b { color: #e67e22; }
+        #floating-tooltip {
+            position: fixed;
+            display: none;
+            z-index: 9999;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            padding: 15px 20px;
+            width: 280px;
+            border-top: 6px solid #e67e22;
+            pointer-events: none;
+        }
+
+        .tt-name { font-size: 18px; font-weight: bold; color: #2c3e50; margin-bottom: 8px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+        .tt-label { color: #7f8c8d; font-size: 11px; text-transform: uppercase; font-weight: bold; display: block; }
+        .tt-ethnos { color: #d35400; font-size: 16px; font-weight: bold; display: block; margin: 2px 0 10px 0; }
+        .tt-trad { font-size: 13px; color: #444; line-height: 1.4; }
+    </style>
+</head>
+<body>
+
+<div class="project-header">
+    <span>Проект команды <b>Единство</b></span>
+    <h1>Карта Единства</h1>
+</div>
+
+<div id="floating-tooltip"></div>
+<div id="map"></div>
+
+<script src="leaflet.js"></script>
+<script src="russia_geo.js"></script>
+<script src="region_json.js"></script>
+
+<script>
+    const map = L.map('map', { 
+        center: [65, 95], 
+        zoom: 3.5,
+        zoomSnap: 0.1,
+        attributionControl: false
+    });
+
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png').addTo(map);
+
+    const tooltip = document.getElementById('floating-tooltip');
+
+    L.geoJson(russiaData, {
+    style: { fillColor: "#48bb78", weight: 1, color: "white", fillOpacity: 0.8 },
+    onEachFeature: function(feature, layer) {
+                    layer.on({
+                        mouseover: function(e) {
+                            this.setStyle({ fillColor: "#ed8936", fillOpacity: 1 });
+                            tooltip.style.display = 'block';
+                            updateContent(feature.properties.name);
+                        },
+                        mousemove: function(e) {
+                            tooltip.style.left = (e.originalEvent.clientX + 20) + 'px';
+                            tooltip.style.top = (e.originalEvent.clientY - 40) + 'px';
+                        },
+                        mouseout: function() {
+                            this.setStyle({ fillColor: "#48bb78", fillOpacity: 0.8 });
+                            tooltip.style.display = 'none';
+                        }
+                    });
+                }
+            }).addTo(map);
+
+    function updateContent(rawName) {
+        const nameNormalized = (rawName || "").toLowerCase();
+        let key = Object.keys(regionData).find(k => nameNormalized.includes(k));
+        
+        const info = key ? regionData[key] : {
+            n: rawName,
+            e: "Русские, местные народы",
+            t: "Народные промыслы, фольклор и традиции гостеприимства."
+        };
+
+        tooltip.innerHTML = `
+            <div class="tt-name">${info.n}</div>
+            <span class="tt-label">коренной народ:</span>
+            <span class="tt-ethnos">${info.e}</span>
+            <div class="tt-trad"><b>Традиции:</b> ${info.t}</div>
+        `;
+    }
+</script>
+</body>
+</html>
